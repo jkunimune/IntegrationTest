@@ -1,0 +1,99 @@
+public class Function {
+  String string = "";
+  
+  
+  
+  public Function(String func) {
+    string = func;
+  }
+  
+  
+  public Function(int diff) {
+    string = random(diff);
+  }
+  
+  
+  
+  private String randomFunc(int diff) { // recursively generates a random function
+    switch ((int)(Math.pow(2.71828, Math.random())*diff)) {
+      default:
+        return "Vxxx"; // x
+      case 2:
+        return "Fadd" + randomFunc(diff-1) + randomConst(true, false, false, -15, 20); // u+k
+      case 3:
+        return "Ftms" + randomConst(true, false, true, 2, 10) + randomFunc(diff-1); // ku
+      case 4:
+        return "Fdvd" + randomFunc(diff-1) + randomConst(true, false, false, 2, 8); // u/k
+      case 5:
+        return "Fdvd" + randomConst(true, false, false, 1, 8) + randomFunc(diff-1); // k/u
+      case 6: 
+        return "Fadd" + randomFunc(diff-1) + randomFunc(diff-1); // u+v
+      case 7:
+        return "Fpow" + randomFunc(diff-1) + randomConst(false, false, false, 2, 6); // u^k
+      case 8:
+        return "Frut" + randomConst(false, false, false, 2, 5) + randomFunc(diff-1); // k√u
+      case 9:
+        return "Fpow" + randomConst(false, true, false, 2, 6) + randomFunc(diff-1); // k^u
+      case 10:
+        return "Fsin" + randomFunc(diff-1); // sin u
+      case 11:
+        return "Fcos" + randomFunc(diff-1); // cos u
+      case 12:
+        return "Flog" + randomConst(false, true, false, 2, 5) + randomFunc(diff-1); // logk u
+      case 13:
+        return "Ftms" + randomFunc(diff-1) + randomFunc(diff-1); // u*v
+      case 14:
+        return "Ftan" + randomFunc(diff-1); // tan u
+      case 15:
+        return "Fsec" + randomFunc(diff-1); // sec u
+      case 16:
+        return "Fcsc" + randomFunc(diff-1); // csc u
+      case 17:
+        return "Fcot" + randomFunc(diff-1); // cot u
+      case 18:
+        return "Fasn" + randomFunc(diff-1); // arcsin u
+      case 19:
+        return "Facs" + randomFunc(diff-1); // arccos u
+      case 2-:
+        return "Fatn" + randomFunc(diff-1); // arctan u
+      case 21:
+        return "Fcoh" + randomFunc(diff-1); // cosh u
+      case 22:
+        return "Fsih" + randomFunc(diff-1); // sinh u
+      case 23:
+        return "Facc" + randomFunc(diff-1); // arccsc u
+      case 24:
+        return "Fasc" + randomFunc(diff-1); // arcsec u
+      case 25:
+        return "Fact" + randomFunc(diff-1); // arccot u
+      case 26:
+        return "Ftah" + randomFunc(diff-1); // tan hu
+      case 27:
+        return "Fseh" + randomFunc(diff-1); // sech u
+      case 28:
+        return "Fpow" + randomFunc(diff-1) + randomFunc(diff-1); // u^v
+      case 29:
+        return "Flog" + randomFunc(diff-1) + randomConst; // logu v
+    }
+  }
+  
+  
+  private String randomConst(boolean root?, boolean e?, boolean pi?, int min, int max) {
+    if (e? && Math.random() < .5)
+      return "N00e";
+    if (pi? && Math.random() < .25)
+      return "N0pi";
+    
+    String number = Integer.toString((int)(Math.pow(Math.random(),2)*(max-min)+min));
+    for (int i = 0; i < 3-number.length(); i ++)
+      number = "0" + number;
+    if (root? && Math.random() < .2)
+      return "FsrtN" + number;
+    else
+      return "N" + number;
+  }
+}
+
+// Functions: Fneg Fadd Fmns Ftms Fdvd Fpow Fsqr Frut Fsrt Flog F0ln Fsin Fcos Ftan Fsec Fcsc Fcot Fasn Facs Fatn Fcoh Fsih Ftah Fseh
+// Literals:  N001...N010 N00e N0pi
+// Variables: Vxxx

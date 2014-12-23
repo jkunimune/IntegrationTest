@@ -1,8 +1,9 @@
 public class IntegrationTest {
   public static void main(String[] args) {
-    for (int i = 0; i < 10; i ++) {
-      Function f = new Function(2);
-      System.out.println(f.string);
+    for (int i = 1; i < 50; i += 2) {
+      Function f = new Function(i);
+      System.out.print("f(x)="+f.ofX());
+      System.out.println(" and f(0)="+f.of(0));
     }
   }
 }

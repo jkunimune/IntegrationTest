@@ -27,6 +27,43 @@ public class Function {
   }
   
   
+  public boolean equals(Function that) { // tests for equivalency of functions
+    for (int i = -10; i < 11; i ++)
+      if (this.of(i) != that.of(i) && this.of(i) == this.of(i) && that.of(i) == that.of(i)) // if the funtions are inequal and real at any point, they are not equivalent
+        return false;
+    return true;
+  }
+  
+  
+  public void simplify() {
+    for (int i = 0; i < string.length(); i += 4) { // looks through the function for things that need to be simplified.  Whenever one is found, it starts over
+      String term = string.substring(i);
+      if (term.substring(0,4).equals("Aadd")) {
+        if (new Function(arg(term, 1)).equals(new Function(arg(term, 2)))) { // u + u = 2u
+          string = string.substring(0,i) + "GtmsN002" + arg(term, 1) + getAfter(string, i);
+          i = 0;
+        }
+        if (arg(term, 2).substring(0,4).equals("Fneg")) { // u + -v = u - v
+          string = string.substring(0,i) + "Amns" + arg(term, 1) + arg(term,2).substring(4) + getAfter(string, i);
+          i = 0;
+        }
+      }
+      if (term.substring(0,4).equals("Amns")) {
+        if (new Function(arg(term, 1)).equals(new Function(arg(term, 2)))) { // u - u = 0
+          string = string.substring(0,i) + "N000" + getAfter(string, i);
+          i = 0;
+        }
+      }
+      if (term.substring(0,4).equals("Fneg")) {
+        if (term.substring(4,8).equals("Fneg")) { // --u = u
+          string = string.substring(0,i) + string.substring(i+8);
+          i = 0;
+        }
+      }
+    }
+  }
+  
+  
   private String print(String func, String outsideOpr) { // gives the form in which a function should be printed (fst and outsideOpr are for order of operations)
     String output = "";
     String fst = func.substring(0,1);
@@ -276,15 +313,23 @@ public class Function {
       return "N0pi";
     
     String number;
-    number = Integer.toString((int)(Math.pow(Math.random()*(Math.cbrt(max)-Math.cbrt(min))+Math.cbrt(min), 3))); // finds a random number in the range (biased toward smaller numbers)
+    do
+      number = Integer.toString((int)(Math.pow(Math.random()*(Math.cbrt(max)-Math.cbrt(min))+Math.cbrt(min), 3))); // finds a random number in the range (biased toward smaller numbers)
+    while (number.equals("0")); // avoids picking 0
+    
+    boolean negative = Integer.parseInt(number) < 0;
+    if (negative)  number = number.substring(1); // checks for negatives and makes number positive
     
     while (number.length() != 3)
       number = "0" + number;
     
-    if (root && number.indexOf("-") == -1 && Math.random() < .2)
-      return "FsrtN" + number;
+    if (root && Math.random() < .2) // sometimes returns square roots
+      number = "FsrtN" + number;
     else
-      return "N" + number;
+      number = "N" + number;
+    
+    if (negative)  return "Fneg" + number;
+    else           return number;
   }
   
   
@@ -293,6 +338,14 @@ public class Function {
     while (code.substring(0,1).equals("0") && code.length() > 1)
       code = code.substring(1);
     return Integer.parseInt(code);
+  }
+  
+  
+  private String getAfter(String func, int argStart) { // finds the whole of a term with a given index and returns everything after that term
+    if (argStart == 0 || argStart == func.length()-4)
+      return "";
+    
+    return func.substring(argStart + arg("F000"+func.substring(argStart), 1).length()); // uses arg to parse the whole term and returns what comes after it
   }
 }
 

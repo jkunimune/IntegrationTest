@@ -9,7 +9,7 @@ public class Function {
   }
   
   
-  public Function(int diff) {
+  public Function(int diff) { // calls for a random function given the difficulty
     do
       string = randomFunc(diff);
     while (diff != 1 && string.equals("Nxxx"));
@@ -17,13 +17,54 @@ public class Function {
   
   
   
-  public double of(double x) {
+  public double of(double x) { // returns the value of this at x
     return eval(string, x);
   }
   
   
-  public String ofX() {
+  public String ofX() { // returns the standard mathematical notation of this
     return print(string, "A");
+  }
+  
+  
+  public boolean equals(Function that) { // tests for equivalency of functions
+    for (int i = -10; i < 11; i ++)
+      if (this.of(i) != that.of(i) && this.of(i) == this.of(i) && that.of(i) == that.of(i)) // if the funtions are inequal and real at any point, they are not equivalent
+        return false;
+    return true;
+  }
+  
+  
+  public void simplify() {
+    for (int i = 0; i < string.length(); i += 4) { // looks through the function for things that need to be simplified.  Whenever one is found, it starts over
+      String term = string.substring(i);
+      if (term.substring(0,4).equals("Aadd")) {
+        if (new Function(arg(term, 1)).equals(new Function(arg(term, 2)))) { // u + u = 2u
+          string = string.substring(0,i) + "GtmsN002" + arg(term, 1) + getAfter(string, i);
+          i = 0;
+        }
+        if (arg(term, 2).substring(0,4).equals("Fneg")) { // u + -v = u - v
+          string = string.substring(0,i) + "Amns" + arg(term, 1) + arg(term,2).substring(4) + getAfter(string, i);
+          i = 0;
+        }
+        if (negConst(arg(term, 2))) { // u + -k = u - k
+          string = string.substring(0,i) + "Amns" + arg(term, 1) + arg(term,2).replace('-','0') + getAfter(string, i);
+          i = 0;
+        }
+      }
+      if (term.substring(0,4).equals("Amns")) {
+        if (new Function(arg(term, 1)).equals(new Function(arg(term, 2)))) { // u - u = 0
+          string = string.substring(0,i) + "N000" + getAfter(string, i);
+          i = 0;
+        }
+      }
+      if (term.substring(0,4).equals("Fneg")) {
+        if (term.substring(4,8).equals("Fneg")) { // --u = u
+          string = string.substring(0,i) + string.substring(i+8);
+          i = 0;
+        }
+      }
+    }
   }
   
   
@@ -58,7 +99,7 @@ public class Function {
     else if (func.substring(0,4).equals("Fsqr"))
       output += print(arg(func,1), fst) +"^2";
     else if (func.substring(0,4).equals("Drut"))
-      output += print(arg(func,1), fst) +"Ã"+ print(arg(func,1), fst);
+      output += print(arg(func,1), fst) +"Ã"+ print(arg(func,2), fst);
     else if (func.substring(0,4).equals("Fsrt"))
       output += "Ã"+ print(arg(func,1), fst);
     else if (func.substring(0,4).equals("Dlog"))
@@ -100,6 +141,7 @@ public class Function {
     
     if (output.indexOf("(") == 0)
       output += ")";
+    
     return output;
   }
   
@@ -173,33 +215,25 @@ public class Function {
   
   
   private String arg(String func, int argNum) { // finds the given argument of a function
-    func = func.substring(4);
+    String output = func; // I was going to just use func but Strings are objects, so I was actually messing with the input function.
+    int cutoff = 4;
     
-    for (int i = 1; i < argNum; i ++) { // cycles through arguments correct number of times
+    for (int i = 0; i < argNum; i ++) { // cycles through arguments correct number of times
+      output = output.substring(cutoff);
+      
       int funcCount = 1;
-      int cutoff = 0;
+      cutoff = 0;
       while (funcCount > 0) { // counts Ds and Ns to find the end of the argument
-        if (func.substring(cutoff, cutoff+1).equals("N"))
+        if (output.substring(cutoff, cutoff+1).equals("N"))
           funcCount --;
-        if (func.substring(cutoff, cutoff+1).equals("D"))
+        else if (!output.substring(cutoff, cutoff+1).equals("F"))
           funcCount ++;
         cutoff += 4;
       }
-      
-      func = func.substring(cutoff);
     }
     
-    int funcCount = 1; // goes through one more argument to cut off excess
-    int cutoff = 0;
-    while (funcCount > 0) { // counts Ds and Ns to find the end of the argument
-      if (func.substring(cutoff, cutoff+1).equals("N"))
-        funcCount --;
-      if (func.substring(cutoff, cutoff+1).equals("D"))
-        funcCount ++;
-      cutoff += 4;
-    }
-    func = func.substring(0, cutoff);
-    return func;
+    output = output.substring(0, cutoff);
+    return output;
   }
   
   
@@ -219,9 +253,9 @@ public class Function {
       case 5:
         return "Qdvd" + randomConst(true, false, false, 1, 8) + randomFunc(diff-r); // k/u
       case 6: 
-        return "Aadd" + randomFunc(diff-r) + randomFunc(diff-r); // u+v
+        return "Aadd" + randomFunc(diff-r/2) + randomFunc(diff-r/2); // u+v
       case 7:
-        return "Amns" + randomFunc(diff-r) + randomFunc(diff-r); // u-v
+        return "Amns" + randomFunc(diff-r/2) + randomFunc(diff-r/2); // u-v
       case 8:
         return "Epow" + randomFunc(diff-r) + randomConst(false, false, false, 2, 6); // u^k
       case 9:
@@ -235,7 +269,7 @@ public class Function {
       case 13:
         return "Dlog" + randomConst(false, true, false, 2, 5) + randomFunc(diff-r); // logk u
       case 14:
-        return "Gtms" + randomFunc(diff-r) + randomFunc(diff-r); // u*v
+        return "Gtms" + randomFunc(diff-r/2) + randomFunc(diff-r/2); // u*v
       case 15:
         return "Ftan" + randomFunc(diff-r); // tan u
       case 16:
@@ -245,7 +279,7 @@ public class Function {
       case 18:
         return "Fcot" + randomFunc(diff-r); // cot u
       case 19:
-        return "Qdvd" + randomFunc(diff-r) + randomFunc(diff-r); // u/v
+        return "Qdvd" + randomFunc(diff-r/2) + randomFunc(diff-r/2); // u/v
       case 20:
         return "Fasn" + randomFunc(diff-r); // arcsin u
       case 21:
@@ -269,23 +303,26 @@ public class Function {
       case 28:
         return "Ftah" + randomFunc(diff-r); // tanh u
       default:
-        return randomFunc(diff);
+        return randomFunc(diff); // if difficulty is too high, none of these might trigger.  In that case, try them all again
     }
   }
   
   
-  private String randomConst(boolean root, boolean e, boolean pi, int min, int max) {
-    if (e && Math.random() < .5)
+  private String randomConst(boolean root, boolean e, boolean pi, int min, int max) { // gives a random constant based on parameters
+    if (e && Math.random() < .5) // uses fundamental constants if applicable
       return "N00e";
-    if (pi && Math.random() < .1)
-      return "N0pi";
     if (pi && Math.random() < .2)
       return "Ntau";
+    if (pi && Math.random() < .1)
+      return "N0pi";
     
-    String number = Integer.toString((int)(Math.pow(Math.random(),2)*(max-min)+min));
-    for (int i = 0; i < 4-number.length(); i ++)
+    String number;
+    number = Integer.toString((int)(Math.pow(Math.random()*(Math.cbrt(max)-Math.cbrt(min))+Math.cbrt(min), 3))); // finds a random number in the range (biased toward smaller numbers)
+    
+    while (number.length() != 3)
       number = "0" + number;
-    if (root && Math.random() < .2)
+    
+    if (root && number.indexOf("-") == -1 && Math.random() < .2)
       return "FsrtN" + number;
     else
       return "N" + number;
@@ -298,7 +335,22 @@ public class Function {
       code = code.substring(1);
     return Integer.parseInt(code);
   }
+  
+  
+  private String getAfter(String func, int argStart) { // finds the whole of a term with a given index and returns everything after that term
+    if (argStart == 0)
+      return "";
+    
+    return func.substring(argStart-4 + arg(func.substring(argStart-4), 1).length());
+  }
+  
+  
+  private boolean negConst(String func) { // determines if a given function is a negative constant
+    return func.substring(0,1).equals("N") && func.indexOf("-") <= 4;
+  }
 }
+
+
 
 // Key: N-Number   A-Arithmetic   G-Geometric   Q-Quotient   E-Exponential   F-Function   D-Double parameter function
 // Functions: Fneg Aadd Amns Gtms Qdvd Epow Fsqr Drut Fsrt Dlog F0ln Fsin Fcos Ftan Fsec Fcsc Fcot Fasn Facs Fatn Fcoh Fsih Ftah Fseh

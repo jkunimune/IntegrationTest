@@ -1,5 +1,5 @@
 public class Function {
-  final String ooo = "NEQGA";
+  final String ooo = "NEQGA0";
   String string = "";
   
   
@@ -24,6 +24,11 @@ public class Function {
   
   public String ofX() { // returns the standard mathematical notation of this
     return print(string, "A");
+  }
+  
+  
+  public Function prime() {
+    return new Function(differentiate(string));
   }
   
   
@@ -84,12 +89,13 @@ public class Function {
       output += "-"+print(arg(func,1), fst);
     else if (func.substring(0,4).equals("Aadd"))
       output += print(arg(func,1), fst) +"+"+ print(arg(func,2), fst);
-    else if (func.substring(0,4).equals("Amns"))
-      output += print(arg(func,1), fst) +"-"+ print(arg(func,2), fst);
+    else if (func.substring(0,4).equals("Amns")) {
+      output += print(arg(func,1), fst) +"-"+ print(arg(func,2), "0"); // subtraction has somewhat special rules regarding parentheses
+    }
     else if (func.substring(0,4).equals("Gtms"))
       output += print(arg(func,1), fst) + print(arg(func,2), fst);
     else if (func.substring(0,4).equals("Qdvd"))
-      output += print(arg(func,1), fst) +"/"+ print(arg(func,2), fst);
+      output += print(arg(func,1), "G") +"/"+ print(arg(func,2), fst); // so does division
     else if (func.substring(0,4).equals("Epow"))
       output += print(arg(func,1), fst) +"^"+ print(arg(func,2), fst);
     else if (func.substring(0,4).equals("Fsqr"))
@@ -133,7 +139,7 @@ public class Function {
     else if (func.substring(0,4).equals("Ftah"))
       output += "tanh"+ print(arg(func,1), fst);
     else
-      output += "ERROR";
+      output += "ERROR "+func;
     
     if (output.indexOf("(") == 0)
       output += ")";
@@ -210,6 +216,75 @@ public class Function {
   }
   
   
+  private String differentiate(String func) {
+    String output = "";
+
+    if (func.substring(0,4).equals("Nxxx")) // d/dx x = 1
+      output += "N001";
+    else if (func.substring(0,1).equals("N")) // d/dx C = 0
+      output += "N000";
+    else if (func.substring(0,4).equals("Fneg")) // d/dx -x = -1
+      output += "Fneg"+differentiate(arg(func,1));
+    else if (func.substring(0,4).equals("Aadd")) // d/dx u+v = du+dv
+      output += "Aadd"+differentiate(arg(func,1))+differentiate(arg(func,2));
+    else if (func.substring(0,4).equals("Amns")) // d/dx u-v = du-dv
+      output += "Fmns"+differentiate(arg(func,1))+differentiate(arg(func,2));
+    else if (func.substring(0,4).equals("Gtms")) // d/dx uv = duv+dvu
+      output += "AaddGtms"+differentiate(arg(func,1))+arg(func,2) + "Gtms"+differentiate(arg(func,2))+arg(func,1);
+    else if (func.substring(0,4).equals("Qdvd")) // d/dx u/v = (duv-dvu)/v^2
+      output += "QdvdAmnsGtms"+differentiate(arg(func,1))+arg(func,2)+"Gtms"+differentiate(arg(func,2))+arg(func,1)+"Epow"+arg(func,2)+"N002";
+//    else if (func.substring(0,4).equals("Epow"))
+//      output += differentiate(arg(func,1)) +"^"+ differentiate(arg(func,2));
+//    else if (func.substring(0,4).equals("Fsqr"))
+//      output += differentiate(arg(func,1)) +"^2";
+//    else if (func.substring(0,4).equals("Drut"))
+//      output += differentiate(arg(func,1)) +"Ã"+ differentiate(arg(func,2));
+//    else if (func.substring(0,4).equals("Fsrt"))
+//      output += "Ã"+ differentiate(arg(func,1));
+//    else if (func.substring(0,4).equals("Dlog"))
+//      output += "log"+ differentiate(arg(func,1)) +" "+ differentiate(arg(func,2));
+//    else if (func.substring(0,4).equals("F0ln"))
+//      output += "ln"+ differentiate(arg(func,2));
+//    else if (func.substring(0,4).equals("Fsin"))
+//      output += "sin"+ differentiate(arg(func,1));
+//    else if (func.substring(0,4).equals("Fcos"))
+//      output += "cos"+ differentiate(arg(func,1));
+//    else if (func.substring(0,4).equals("Ftan"))
+//      output += "tan"+ differentiate(arg(func,1));
+//    else if (func.substring(0,4).equals("Fsec"))
+//      output += "sec"+ differentiate(arg(func,1));
+//    else if (func.substring(0,4).equals("Fcsc"))
+//      output += "csc"+ differentiate(arg(func,1));
+//    else if (func.substring(0,4).equals("Fcot"))
+//      output += "cot"+ differentiate(arg(func,1));
+//    else if (func.substring(0,4).equals("Fasn"))
+//      output += "arcsin"+ differentiate(arg(func,1));
+//    else if (func.substring(0,4).equals("Facs"))
+//      output += "arccos"+ differentiate(arg(func,1));
+//    else if (func.substring(0,4).equals("Fatn"))
+//      output += "arctan"+ differentiate(arg(func,1));
+//    else if (func.substring(0,4).equals("Fasc"))
+//      output += "arcsec"+ differentiate(arg(func,1));
+//    else if (func.substring(0,4).equals("Facc"))
+//      output += "arccsc"+ differentiate(arg(func,1));
+//    else if (func.substring(0,4).equals("Fact"))
+//      output += "arccot"+ differentiate(arg(func,1));
+//    else if (func.substring(0,4).equals("Fsih"))
+//      output += "sinh"+ differentiate(arg(func,1));
+//    else if (func.substring(0,4).equals("Fcoh"))
+//      output += "cosh"+ differentiate(arg(func,1));
+//    else if (func.substring(0,4).equals("Ftah"))
+//      output += "tanh"+ differentiate(arg(func,1));
+    else
+      output += "ERROR "+func;
+    
+    if (output.indexOf("(") == 0)
+      output += ")";
+    
+    return output;
+  }
+  
+  
   private String arg(String func, int argNum) { // finds the given argument of a function
     String output = func; // I was going to just use func but Strings are objects, so I was actually messing with the input function.
     int cutoff = 4;
@@ -235,7 +310,7 @@ public class Function {
   
   private String randomFunc(int diff) { // recursively generates a random function
     int r = (int)(Math.pow(Math.random(),1.5)*diff);
-    switch (r) {
+    switch (r%28) {
       case 0:
         return "Nxxx"; // x
       case 1:
@@ -299,7 +374,7 @@ public class Function {
       case 28:
         return "Ftah" + randomFunc(diff-r); // tanh u
       default:
-        return randomFunc(diff); // if difficulty is too high, none of these might trigger.  In that case, try them all again
+        return "ERROR - Math is broken"; // should not trigger
     }
   }
   

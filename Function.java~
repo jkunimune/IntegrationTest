@@ -80,20 +80,19 @@ public class Function {
     else if (func.substring(0,4).equals("N00e"))
       output += "e";
     else if (func.substring(0,4).equals("N0pi"))
-      output += "¹";
+      output += "pi";
     else if (func.substring(0,4).equals("Ntau"))
-      output += "2¹";
+      output += "2pi";
     else if (func.substring(0,1).equals("N"))
       output += getLiteral(func);
     else if (func.substring(0,4).equals("Fneg"))
       output += "-"+print(arg(func,1), fst);
     else if (func.substring(0,4).equals("Aadd"))
       output += print(arg(func,1), fst) +"+"+ print(arg(func,2), fst);
-    else if (func.substring(0,4).equals("Amns")) {
+    else if (func.substring(0,4).equals("Amns"))
       output += print(arg(func,1), fst) +"-"+ print(arg(func,2), "0"); // subtraction has somewhat special rules regarding parentheses
-    }
     else if (func.substring(0,4).equals("Gtms"))
-      output += print(arg(func,1), fst) + print(arg(func,2), fst);
+      output += print(arg(func,1), fst) + "(" + print(arg(func,2), fst) + ")";
     else if (func.substring(0,4).equals("Qdvd"))
       output += print(arg(func,1), "G") +"/"+ print(arg(func,2), fst); // so does division
     else if (func.substring(0,4).equals("Epow"))
@@ -101,13 +100,13 @@ public class Function {
     else if (func.substring(0,4).equals("Fsqr"))
       output += print(arg(func,1), fst) +"^2";
     else if (func.substring(0,4).equals("Drut"))
-      output += print(arg(func,1), fst) +"Ã"+ print(arg(func,2), fst);
+      output += print(arg(func,1), fst) +"?"+ print(arg(func,2), fst);
     else if (func.substring(0,4).equals("Fsrt"))
-      output += "Ã"+ print(arg(func,1), fst);
+      output += "?"+ print(arg(func,1), fst);
     else if (func.substring(0,4).equals("Dlog"))
       output += "log"+ print(arg(func,1), fst) +" "+ print(arg(func,2), fst);
     else if (func.substring(0,4).equals("F0ln"))
-      output += "ln"+ print(arg(func,2), fst);
+      output += "ln"+ print(arg(func,1), fst);
     else if (func.substring(0,4).equals("Fsin"))
       output += "sin"+ print(arg(func,1), fst);
     else if (func.substring(0,4).equals("Fcos"))
@@ -180,7 +179,7 @@ public class Function {
     else if (func.substring(0,4).equals("Dlog"))
       return Math.log(eval(arg(func,2), x)) / Math.log(eval(arg(func,1), x));
     else if (func.substring(0,4).equals("F0ln"))
-      return Math.log(eval(arg(func,2), x));
+      return Math.log(eval(arg(func,1), x));
     else if (func.substring(0,4).equals("Fsin"))
       return Math.sin(eval(arg(func,1), x));
     else if (func.substring(0,4).equals("Fcos"))
@@ -228,7 +227,7 @@ public class Function {
     else if (func.substring(0,4).equals("Aadd")) // d/dx u+v = du+dv
       output += "Aadd"+differentiate(arg(func,1))+differentiate(arg(func,2));
     else if (func.substring(0,4).equals("Amns")) // d/dx u-v = du-dv
-      output += "Fmns"+differentiate(arg(func,1))+differentiate(arg(func,2));
+      output += "Amns"+differentiate(arg(func,1))+differentiate(arg(func,2));
     else if (func.substring(0,4).equals("Gtms")) // d/dx uv = duv+dvu
       output += "AaddGtms"+differentiate(arg(func,1))+arg(func,2) + "Gtms"+differentiate(arg(func,2))+arg(func,1);
     else if (func.substring(0,4).equals("Qdvd")) // d/dx u/v = (duv-dvu)/v^2
@@ -238,45 +237,45 @@ public class Function {
     else if (func.substring(0,4).equals("Fsqr")) // d/dx u^2 = 2*u*du
       output += "GtmsGtmsN002"+arg(func,1)+differentiate(arg(func,1));
     else if (func.substring(0,4).equals("Drut")) // d/dx u root (v) = d/dx v ^ 1/u
-      output += "FnegQdvd"+differentiate("Epow"+arg(func,2)+"QdvdN001"+arg(func,1));
+      output += differentiate("Epow"+arg(func,2)+"QdvdN001"+arg(func,1));
     else if (func.substring(0,4).equals("Fsrt")) // d/dx sqrt(u) = -du / 2sqrt(u)
-      output += "FnegQdvd"+differentiate(arg(func,1))+"GtmsN002Drut"+arg(func,1);
+      output += "FnegQdvd"+differentiate(arg(func,1))+"GtmsN002Fsrt"+arg(func,1);
     else if (func.substring(0,4).equals("Dlog")) // d/dx logu v  = udv/vdu
-      output += "QdvdGtms "+arg(func,1)+differentiate(arg(func,2))+"Gtms"+arg(func,2)+differentiate(arg(func,1));
+      output += "QdvdGtms"+arg(func,1)+differentiate(arg(func,2))+"Gtms"+arg(func,2)+differentiate(arg(func,1));
     else if (func.substring(0,4).equals("F0ln")) // d/dx lnu = du/u
       output += "Qdvd"+differentiate(arg(func,1))+arg(func,1);
-//    else if (func.substring(0,4).equals("Fsin"))
-//      output += "sin"+ differentiate(arg(func,1));
-//    else if (func.substring(0,4).equals("Fcos"))
-//      output += "cos"+ differentiate(arg(func,1));
-//    else if (func.substring(0,4).equals("Ftan"))
-//      output += "tan"+ differentiate(arg(func,1));
-//    else if (func.substring(0,4).equals("Fsec"))
-//      output += "sec"+ differentiate(arg(func,1));
-//    else if (func.substring(0,4).equals("Fcsc"))
-//      output += "csc"+ differentiate(arg(func,1));
-//    else if (func.substring(0,4).equals("Fcot"))
-//      output += "cot"+ differentiate(arg(func,1));
-//    else if (func.substring(0,4).equals("Fasn"))
-//      output += "arcsin"+ differentiate(arg(func,1));
-//    else if (func.substring(0,4).equals("Facs"))
-//      output += "arccos"+ differentiate(arg(func,1));
-//    else if (func.substring(0,4).equals("Fatn"))
-//      output += "arctan"+ differentiate(arg(func,1));
-//    else if (func.substring(0,4).equals("Fasc"))
-//      output += "arcsec"+ differentiate(arg(func,1));
-//    else if (func.substring(0,4).equals("Facc"))
-//      output += "arccsc"+ differentiate(arg(func,1));
-//    else if (func.substring(0,4).equals("Fact"))
-//      output += "arccot"+ differentiate(arg(func,1));
-//    else if (func.substring(0,4).equals("Fsih"))
-//      output += "sinh"+ differentiate(arg(func,1));
-//    else if (func.substring(0,4).equals("Fcoh"))
-//      output += "cosh"+ differentiate(arg(func,1));
-//    else if (func.substring(0,4).equals("Ftah"))
-//      output += "tanh"+ differentiate(arg(func,1));
+    else if (func.substring(0,4).equals("Fsin")) // d/dx sinu = cosudu
+      output += "GtmsFcos"+arg(func,1)+differentiate(arg(func,1));
+    else if (func.substring(0,4).equals("Fcos")) // d/dx cosu = -sinudu
+      output += "FnegGtmsFsin"+arg(func,1)+differentiate(arg(func,1));
+    else if (func.substring(0,4).equals("Ftan")) // d/dx tanu = sec^2u du
+      output += "GtmsEpowFsec"+arg(func,1)+"N002"+differentiate(arg(func,1));
+    else if (func.substring(0,4).equals("Fsec")) // d/dx secu = tanu secu du
+      output += "GtmsGtmsFtan"+arg(func,1)+"Fsec"+arg(func,1)+differentiate(arg(func,1));
+    else if (func.substring(0,4).equals("Fcsc")) // d/dx cscu = -cotu cscu du
+      output += "FnegGtmsGtmsFcot"+arg(func,1)+"Fcsc"+arg(func,1)+differentiate(arg(func,1));
+    else if (func.substring(0,4).equals("Fcot")) // d/dx cotu = -csc^2u du
+      output += "FnegGtmsEpowFcsc"+arg(func,1)+"N002"+differentiate(arg(func,1));
+    else if (func.substring(0,4).equals("Fasn")) // d/dx arcsinu = du/sqrt(1-u^2)
+      output += "Qdvd"+differentiate(arg(func,1))+"FsrtAmnsN001Epow"+arg(func,1)+"N002";
+    else if (func.substring(0,4).equals("Facs")) // d/dx arccosu = -du/sqrt(1-u^2)
+      output += "FnegQdvd"+differentiate(arg(func,1))+"FsrtAmnsN001Epow"+arg(func,1)+"N002";
+    else if (func.substring(0,4).equals("Fatn")) // d/dx arctanu = du/(1+u^2)
+      output += "Qdvd"+differentiate(arg(func,1))+"AaddN001Epow"+arg(func,1)+"N002";
+    else if (func.substring(0,4).equals("Fasc")) // d/dx arcsecu = du/(|u|*sqrt(u^2-1)) = du/sqrt(u^4-u^2)
+      output += "Qdvd"+differentiate(arg(func,1))+"FsrtAmnsEpow"+arg(func,1)+"N004Epow"+arg(func,1)+"N002";
+    else if (func.substring(0,4).equals("Facc")) // d/dx arccscu = -du/sqrt(u^4-u^2)
+      output += "FnegQdvd"+differentiate(arg(func,1))+"FsrtAmnsEpow"+arg(func,1)+"N004Epow"+arg(func,1)+"N002";
+    else if (func.substring(0,4).equals("Fact")) // d/dx arccotu = -du/(1+u^2)
+      output += "FnegQdvd"+differentiate(arg(func,1))+"AaddN001Epow"+arg(func,1)+"N002";
+    else if (func.substring(0,4).equals("Fsih")) // d/dx sinhu = coshu du
+      output += "GtmsFcoh"+arg(func,1)+differentiate(arg(func,1));
+    else if (func.substring(0,4).equals("Fcoh")) // d/dx coshu = sinhu du
+      output += "GtmsFcoh"+arg(func,1)+differentiate(arg(func,1));
+    else if (func.substring(0,4).equals("Ftah")) // d/dx tanhu = du-tanh^2u du
+      output += "Amns"+differentiate(arg(func,1))+"GtmsEpowFtah"+arg(func,1)+"N002"+differentiate(arg(func,1));
     else
-      output += "ERROR "+func;
+      output += "ERROR: "+func;
     
     if (output.indexOf("(") == 0)
       output += ")";

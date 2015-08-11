@@ -62,6 +62,19 @@ public class Function {
   public void simplify() {
     for (int i = 0; i < string.length(); i += 4) { // looks through the function for things that need to be simplified.  Whenever one is found, it starts over
       String term = string.substring(i);
+      if (!arg("F000"+term,1).contains("Nxxx") && arg("F000"+term,1).length() > 4) { // evaluates constants, assuming the result is an integer
+        double result = eval(term,0);
+        if ((int)result == result) {
+          if (result >= 0) {
+            string = string.replace(arg("F000"+term,1), literalToCode((int)result));
+            i = 0;
+          }
+          else {
+            string = string.replace(arg("F000"+term,1), "Fneg"+literalToCode(-(int)result));
+            i = 0;
+          }
+        }
+      }
       if (term.substring(0,4).equals("Aadd")) {
         if (new Function(arg(term, 1)).equals(new Function(arg(term, 2)))) { // u + u = 2u
           string = string.substring(0,i) + "GtmsN002" + arg(term, 1) + getAfter(string, i);
@@ -71,6 +84,14 @@ public class Function {
           string = string.substring(0,i) + "Amns" + arg(term, 1) + arg(term,2).substring(4) + getAfter(string, i);
           i = 0;
         }
+        if (arg(term,1).equals("N000")) { // u + 0 = u
+          string = string.substring(0,i) + arg(term,2) + getAfter(string, i);
+          i = 0;
+        }
+        if (arg(term,2).equals("N000")) { // u + 0 = u
+          string = string.substring(0,i) + arg(term,1) + getAfter(string, i);
+          i = 0;
+        }
       }
       if (term.substring(0,4).equals("Amns")) {
         if (new Function(arg(term, 1)).equals(new Function(arg(term, 2)))) { // u - u = 0
@@ -78,15 +99,23 @@ public class Function {
           i = 0;
         }
       }
-      if (term.substring(0,4).equals("Fneg")) {
-        if (term.substring(4,8).equals("Fneg")) { // --u = u
-          string = string.substring(0,i) + string.substring(i+8);
+      if (term.substring(0,4).equals("Fneg") && term.substring(4,8).equals("Fneg")) { // --u = u
+        string = string.substring(0,i) + string.substring(i+8);
+        i = 0;
+      }
+      if (term.substring(0,4).equals("Fneg") && term.substring(4,8).equals("N000")) { // -0 = 0
+        string = string.substring(0,i) + string.substring(i+4);
+        i = 0;
+      }
+      if (term.substring(0,4).equals("Gtms")) {
+        if (arg(term,1).equals("N000") || arg(term,2).equals("N000")) { // u*0 = 0
+          string = string.substring(0,i) + "N000" + getAfter(string, i);
           i = 0;
         }
       }
     }
   }
-  
+   
   
   public static String print(String func, String outsideOpr) { // gives the form in which a function should be printed (fst and outsideOpr are for order of operations)
     String output = "";

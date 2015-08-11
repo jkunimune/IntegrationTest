@@ -17,7 +17,7 @@ public class IntegrationTest {
     
     Function g = f.prime();
     System.out.print("f'(x) = "+g.ofX());
-    f.simplify();
+    g.simplify();
     System.out.print(" = "+g.ofX());
     System.out.println(" and f'(0) = "+g.of(0));
     

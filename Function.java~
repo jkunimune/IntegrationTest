@@ -1,10 +1,10 @@
 public class Function {
-  final String ooo = "NEQGA0";
-  String string = "";
+  final static String ooo = "NEQGA0"; // the order of operations (Number, Exponent, Quotient, Geometric, Arithmetic) 
+  private String string;
   
   
   
-  public Function(String func) {
+  public Function(String func) { // copies an existing fuction code
     string = func;
   }
   
@@ -15,6 +15,25 @@ public class Function {
     while (diff != 1 && string.equals("Nxxx"));
   }
   
+  
+  public Function(String expression, boolean standardize) { // reads a given mathematical expression
+    if (standardize) {
+      expression.replace("C", "0");
+      expression.replace(" ", "");
+      expression.replace("{", "(");
+      expression.replace("}", ")");
+      expression.replace("[", "(");
+      expression.replace("]", ")"); // standardizes some notation
+    }
+    
+    string =  read(expression);
+  }
+  
+  
+  
+  public String getString() {
+    return string;
+  }
   
   
   public double of(double x) { // returns the value of this at x
@@ -69,7 +88,7 @@ public class Function {
   }
   
   
-  private String print(String func, String outsideOpr) { // gives the form in which a function should be printed (fst and outsideOpr are for order of operations)
+  public static String print(String func, String outsideOpr) { // gives the form in which a function should be printed (fst and outsideOpr are for order of operations)
     String output = "";
     String fst = func.substring(0,1);
     if (ooo.indexOf(outsideOpr) < ooo.indexOf(fst))
@@ -147,7 +166,7 @@ public class Function {
   }
   
   
-  private double eval(String func, double x) { // evaluates a given function at a given x
+  public static double eval(String func, double x) { // evaluates a given function at a given x
     if (func.substring(0,4).equals("Nxxx"))
       return x;
     else if (func.substring(0,4).equals("N00e"))
@@ -179,7 +198,7 @@ public class Function {
     else if (func.substring(0,4).equals("Dlog"))
       return Math.log(eval(arg(func,2), x)) / Math.log(eval(arg(func,1), x));
     else if (func.substring(0,4).equals("F0ln"))
-      return Math.log(eval(arg(func,1), x));
+      return Math.log(Math.abs(eval(arg(func,1), x)));
     else if (func.substring(0,4).equals("Fsin"))
       return Math.sin(eval(arg(func,1), x));
     else if (func.substring(0,4).equals("Fcos"))
@@ -215,7 +234,7 @@ public class Function {
   }
   
   
-  private String differentiate(String func) {
+  public static String differentiate(String func) {
     String output = "";
 
     if (func.substring(0,4).equals("Nxxx")) // d/dx x = 1
@@ -284,7 +303,98 @@ public class Function {
   }
   
   
-  private String arg(String func, int argNum) { // finds the given argument of a function
+  public static String read(String exp) { // converts a mathematical expression (i.e. 2x) to code (i.e. GtmsN002Nxxx)
+    while (exp.charAt(0) == '(')
+      exp = exp.substring(1,exp.length()-1); // removes any parentheses that may be surrounding this expression
+    
+    int ptsLvl = 0; // the number of parentheses pairs we are inside
+    for (int o = 0; o < 3; o ++) { // index of the operations we are looking for
+      for (int i = exp.length()-1; i >=0; i --) { // index of the character at which we look
+        if (exp.charAt(i) == ')')
+          ptsLvl ++;
+        else if (exp.charAt(i) == '(') // keeps track of whether we are in parentheses
+          ptsLvl --;
+        if (ptsLvl != 0) // does not read anything inside parentheses yet
+          continue;
+        
+        switch (o) {
+          case 0: // arithmetic
+            if (exp.charAt(i) == '+')
+              return "Aadd" + read(exp.substring(0,i)) +  read(exp.substring(i+1, exp.length()));
+            else if (exp.charAt(i) == '-')
+              return "Amns" + read(exp.substring(0,i)) +  read(exp.substring(i+1, exp.length()));
+            break;
+            
+          case 1: // geometric
+            if (exp.charAt(i) == '*')
+              return "Gtms" + read(exp.substring(0,i)) +  read(exp.substring(i+1, exp.length()));
+            else if (exp.charAt(i) == '/')
+              return "Qdvd" + read(exp.substring(0,i)) +  read(exp.substring(i+1, exp.length()));
+            break;
+            
+          case 2: // exponential
+            if (exp.charAt(i) == '^')
+              return "Epow" + read(exp.substring(0,i)) +  read(exp.substring(i+1, exp.length()));
+            break;
+        }
+      }
+    }
+    
+    if (exp.indexOf("-") == 0)
+      return "Fneg"+read(exp.substring(1));
+    else if (exp.indexOf("ln") == 0)
+      return "F0ln"+read(exp.substring(2));
+    else if (exp.indexOf("log") == 0)
+      return "DlogN010"+read(exp.substring(3));
+    else if (exp.indexOf("sin") == 0)
+      return "Fsin"+read(exp.substring(3));
+    else if (exp.indexOf("cos") == 0)
+      return "Fcos"+read(exp.substring(3));
+    else if (exp.indexOf("tan") == 0)
+      return "Ftan"+read(exp.substring(3));
+    else if (exp.indexOf("csc") == 0)
+      return "Fcsc"+read(exp.substring(3));
+    else if (exp.indexOf("sec") == 0)
+      return "Fsec"+read(exp.substring(3));
+    else if (exp.indexOf("cot") == 0)
+      return "Fcot"+read(exp.substring(3));
+    else if (exp.indexOf("arccot") == 0)
+      return "Fact"+read(exp.substring(4));
+    else if (exp.indexOf("sinh") == 0)
+      return "Fsih"+read(exp.substring(4));
+    else if (exp.indexOf("cosh") == 0)
+      return "Fcoh"+read(exp.substring(4));
+    else if (exp.indexOf("tanh") == 0)
+      return "Ftah"+read(exp.substring(4));
+    else if (exp.indexOf("arcsin") == 0)
+      return "Fasn"+read(exp.substring(6));
+    else if (exp.indexOf("arccos") == 0)
+      return "Facs"+read(exp.substring(6));
+    else if (exp.indexOf("arctan") == 0)
+      return "Fatn"+read(exp.substring(6));
+    else if (exp.indexOf("arccsc") == 0)
+      return "Facc"+read(exp.substring(6));
+    else if (exp.indexOf("arcsec") == 0)
+      return "Fasc"+read(exp.substring(6));
+    else if (exp.equals("x"))
+      return "Nxxx";
+    else if (exp.equals("pi"))
+      return "N0pi";
+    else if (exp.equals("tau") || exp.equals("2pi"))
+      return "Ntau";
+    else if (exp.equals("e"))
+      return "N00e";
+    else {
+      try {
+        return literalToCode(Integer.parseInt(exp));
+      } catch (NumberFormatException e) {
+        return "%ERROR!%";
+      }
+    }
+  }
+  
+  
+  private static String arg(String func, int argNum) { // finds the given argument of a function
     String output = func; // I was going to just use func but Strings are objects, so I was actually messing with the input function.
     int cutoff = 4;
     
@@ -388,10 +498,10 @@ public class Function {
     
     String number;
     do
-      number = Integer.toString((int)(Math.pow(Math.random()*(Math.cbrt(max)-Math.cbrt(min))+Math.cbrt(min), 3))); // finds a random number in the range (biased toward smaller numbers)
+      number = Integer.toString((int)(Math.pow(Math.random()*(Math.cbrt(max)-Math.cbrt(min))+Math.cbrt(min), 3)), 16); // finds a random number in the range (biased toward smaller numbers)
     while (number.equals("0")); // avoids picking 0
     
-    boolean negative = Integer.parseInt(number) < 0;
+    boolean negative = Integer.parseInt(number,16) < 0;
     if (negative)  number = number.substring(1); // checks for negatives and makes number positive
     
     while (number.length() != 3)
@@ -407,19 +517,37 @@ public class Function {
   }
   
   
-  private int getLiteral(String code) { //gets a number literal from N0... code
-    code = code.substring(1);
-    while (code.substring(0,1).equals("0") && code.length() > 1)
-      code = code.substring(1);
-    return Integer.parseInt(code);
+  private static String literalToCode(int n) { // converts a number literal to N0... code
+    boolean negative = n < 0;
+    if (negative)  n = -n; // checks for negatives and makes number positive
+    
+    String number = Integer.toString(n, 16);
+    while (number.length() != 3)
+      number = "0" + number;
+    
+    if (negative)  return "FnegN" + number;
+    else           return "N"+number;
   }
   
   
-  private String getAfter(String func, int argStart) { // finds the whole of a term with a given index and returns everything after that term
+  private static int getLiteral(String code) { //gets a number literal from N0... code
+    code = code.substring(1);
+    while (code.substring(0,1).equals("0") && code.length() > 1)
+      code = code.substring(1);
+    return Integer.parseInt(code, 16);
+  }
+  
+  
+  private static String getAfter(String func, int argStart) { // finds the whole of a term with a given index and returns everything after that term
     if (argStart == 0 || argStart == func.length()-4)
       return "";
     
     return func.substring(argStart + arg("F000"+func.substring(argStart), 1).length()); // uses arg to parse the whole term and returns what comes after it
+  }
+  
+  
+  public boolean isValid() {
+    return string.indexOf("%ERROR!%") == -1;
   }
 }
 
@@ -427,5 +555,6 @@ public class Function {
 
 // Key: N-Number   A-Arithmetic   G-Geometric   Q-Quotient   E-Exponential   F-Function   D-Double parameter function
 // Functions: Fneg Aadd Amns Gtms Qdvd Epow Fsqr Drut Fsrt Dlog F0ln Fsin Fcos Ftan Fsec Fcsc Fcot Fasn Facs Fatn Fcoh Fsih Ftah Fseh
-// Literals:  N001...N010 N00e N0pi Ntau
+// Literals*:  N001...N010 N00e N0pi Ntau
 // Variables: Nxxx
+// *literals stored in hexadecimal

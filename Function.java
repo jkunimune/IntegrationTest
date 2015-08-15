@@ -1,3 +1,7 @@
+import java.util.*;
+
+
+
 public class Function {
   final static String ooo = "NEQGA0"; // the order of operations (Number, Exponent, Quotient, Geometric, Arithmetic) 
   private String string;
@@ -11,26 +15,52 @@ public class Function {
   
   public Function(int diff) { // calls for a random function given the difficulty
     do
-      string = randomFunc(diff);
-    while (diff != 1 && string.equals("Nxxx"));
+      string = randomFunc(diff+1);
+    while (diff > 0 && string.equals("Nxxx"));
   }
   
   
   public Function(String expression, boolean standardize) { // reads a given mathematical expression
     if (standardize) {
-      expression.replace("C", "0");
-      expression.replace(" ", "");
-      expression.replace("{", "(");
-      expression.replace("}", ")");
-      expression.replace("[", "(");
-      expression.replace("]", ")"); // standardizes some notation
+      expression = expression.replace("C", "0");
+      expression = expression.replace("c", "0");
+      expression = expression.replace(" ", "");
+      expression = expression.replace("{", "(");
+      expression = expression.replace("}", ")");
+      expression = expression.replace("[", "(");
+      expression = expression.replace("]", ")"); // standardizes some notation
     }
     
     string =  read(expression);
   }
   
   
-  
+  public Function(Scanner in) {
+    System.out.println("Function constructor is running.");
+    String expression = in.nextLine();
+    expression.replace("C", "0");
+    expression.replace(" ", "");
+    expression.replace("{", "(");
+    expression.replace("}", ")");
+    expression.replace("[", "(");
+    expression.replace("]", ")"); // standardizes some notation
+    string = read(expression);
+    
+    while (!isValid()) {
+      System.out.println("That was invalid. Remember not to use any decimals, mixed numbers, roots, or non-standard log bases.");
+      expression = in.nextLine();
+      expression.replace("C", "0");
+      expression.replace(" ", "");
+      expression.replace("{", "(");
+      expression.replace("}", ")");
+      expression.replace("[", "(");
+      expression.replace("]", ")"); // standardizes some notation
+      string = read(expression);
+    }
+  }
+    
+    
+    
   public String getString() {
     return string;
   }
@@ -53,8 +83,19 @@ public class Function {
   
   public boolean equals(Function that) { // tests for equivalency of functions
     for (int i = -10; i < 11; i ++)
-      if (this.of(i) != that.of(i) && this.of(i) == this.of(i) && that.of(i) == that.of(i)) // if the funtions are inequal and real at any point, they are not equivalent
+      if (Math.abs(this.of(i)-that.of(i)) > .01 && this.of(i) == this.of(i) && that.of(i) == that.of(i)) // if the funtions are inequal and real at any point, they are not equivalent
         return false;
+    return true;
+  }
+  
+  
+  public boolean matches(Function that) { // test for equivalency of antiderivatives
+    for (int i = -10; i < 10; i ++) {
+      double dThis = this.of(i)-this.of(i+1);
+      double dThat = that.of(i)-that.of(i+1);
+      if (Math.abs(dThis-dThat) > .01 && dThis == dThis && dThat == dThat) // if the derivatives of the funtions are inequal and real at any point, they are not equivalent
+        return false;
+    }
     return true;
   }
   
@@ -62,7 +103,7 @@ public class Function {
   public void simplify() {
     for (int i = 0; i < string.length(); i += 4) { // looks through the function for things that need to be simplified.  Whenever one is found, it starts over
       String term = string.substring(i);
-      if (!arg("F000"+term,1).contains("Nxxx") && arg("F000"+term,1).length() > 4) { // evaluates constants, assuming the result is an integer
+      if (!arg("F000"+term,1).contains("Nxxx") && arg("F000"+term,1).length() > 4 && !term.substring(0,4).equals("Fneg")) { // evaluates constants, assuming the result is an integer
         double result = eval(term,0);
         if ((int)result == result) {
           if (result >= 0) {
@@ -148,9 +189,9 @@ public class Function {
     else if (func.substring(0,4).equals("Fsqr"))
       output += print(arg(func,1), fst) +"^2";
     else if (func.substring(0,4).equals("Drut"))
-      output += print(arg(func,1), fst) +"?"+ print(arg(func,2), fst);
+      output += print(arg(func,1), fst) +"rt"+ print(arg(func,2), fst);
     else if (func.substring(0,4).equals("Fsrt"))
-      output += "?"+ print(arg(func,1), fst);
+      output += "sqrt"+ print(arg(func,1), fst);
     else if (func.substring(0,4).equals("Dlog"))
       output += "log"+ print(arg(func,1), fst) +" "+ print(arg(func,2), fst);
     else if (func.substring(0,4).equals("F0ln"))
@@ -333,18 +374,22 @@ public class Function {
   
   
   public static String read(String exp) { // converts a mathematical expression (i.e. 2x) to code (i.e. GtmsN002Nxxx)
-    while (exp.charAt(0) == '(')
-      exp = exp.substring(1,exp.length()-1); // removes any parentheses that may be surrounding this expression
+    if (exp.length() == 0)
+      return "%ERROR!%";
+    if (exp.charAt(0) == '(')
+      return read(exp.substring(1,exp.length()-1)); // removes any parentheses that may be surrounding this expression
     
     int ptsLvl = 0; // the number of parentheses pairs we are inside
+    boolean wasEver0 = false; // notices if the entire expression was in parentheses
     for (int o = 0; o < 3; o ++) { // index of the operations we are looking for
-      for (int i = exp.length()-1; i >=0; i --) { // index of the character at which we look
+      for (int i = exp.length()-1; i > 0; i --) { // index of the character at which we look (does not look at 0)
         if (exp.charAt(i) == ')')
           ptsLvl ++;
         else if (exp.charAt(i) == '(') // keeps track of whether we are in parentheses
           ptsLvl --;
         if (ptsLvl != 0) // does not read anything inside parentheses yet
           continue;
+        wasEver0 = true;
         
         switch (o) {
           case 0: // arithmetic
@@ -359,6 +404,10 @@ public class Function {
               return "Gtms" + read(exp.substring(0,i)) +  read(exp.substring(i+1, exp.length()));
             else if (exp.charAt(i) == '/')
               return "Qdvd" + read(exp.substring(0,i)) +  read(exp.substring(i+1, exp.length()));
+            else if ((isNumber(exp.charAt(i)) && (isLetter(exp.charAt(i-1)) || exp.charAt(i-1) == ')')) ||
+                     (isNumber(exp.charAt(i-1)) && (isLetter(exp.charAt(i)) || exp.charAt(i) == '(')) ||
+                     (exp.charAt(i-1) == ')' && exp.charAt(i) == '('))
+              return "Gtms" + read(exp.substring(0,i)) + read(exp.substring(i));
             break;
             
           case 2: // exponential
@@ -367,6 +416,9 @@ public class Function {
             break;
         }
       }
+      
+      if (!wasEver0 && exp.length() > 2)
+        return read(exp.substring(1,exp.length()-1)); // removes exterior parentheses if they exist
     }
     
     if (exp.indexOf("-") == 0)
@@ -577,6 +629,16 @@ public class Function {
   
   public boolean isValid() {
     return string.indexOf("%ERROR!%") == -1;
+  }
+  
+  
+  private static boolean isNumber(char c) {
+    return String.valueOf(c).compareTo(" ") >= 16 && String.valueOf(c).compareTo(" ") < 26;
+  }
+  
+  
+  private static boolean isLetter(char c) {
+    return String.valueOf(c).compareTo(" ") >= 33 && String.valueOf(c).compareTo(" ") < 91;
   }
 }
 

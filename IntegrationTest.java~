@@ -1,5 +1,5 @@
 import java.util.*;
- // note to self: PROPERTEIS OF 1, SIMPLIFIED FRACTIONS, MOAR PROPERTIES OF 0 (LIKE SUBTRACTIVE), WHY IS NOTHING CORRECT?
+ // note to self: PROPERTEIS OF 1, SIMPLIFIED FRACTIONS, MOAR PROPERTIES OF 0 (LIKE SUBTRACTIVE), No moar 2+C stuff, WHY IS NOTHING CORRECT?
 
 
 public class IntegrationTest {
@@ -27,8 +27,8 @@ public class IntegrationTest {
         h = new Function(response, true);
       }
       
-      if (((response.length() > 2 && response.indexOf("+C") == response.length()-3) || // the answer is correct if the antiderivatives match
-           (response.length() > 3 && response.indexOf("+ C") == response.length()-4)) && h.matches(g)) { // and it ends in "+C"
+      if (((response.length() > 2 && response.indexOf("+C") == response.length()-2) || // the answer is correct if the antiderivatives match
+           (response.length() > 3 && response.indexOf("+ C") == response.length()-3)) && h.matches(g)) { // and it ends in "+C"
         System.out.println("Correct!");
         right ++;
         difficulty *= Math.pow(1.5,1.0/i);

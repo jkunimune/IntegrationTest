@@ -1,5 +1,5 @@
 import java.util.*;
- // note to self: PROPERTEIS OF 1, SIMPLIFIED FRACTIONS, MOAR PROPERTIES OF 0 (LIKE SUBTRACTIVE), No moar 2+C stuff, WHY IS NOTHING CORRECT?
+// note to self: combine/remove like/unnecessary terms, same for multiplication
 
 
 public class IntegrationTest {
@@ -15,6 +15,7 @@ public class IntegrationTest {
 //      System.out.println(difficulty);
       Function g = new Function(difficulty);
       g.simplify();
+      g.addC();
       Function f = g.prime();
       f.simplify();
       System.out.print("\n"+i+": f(x) = "+f.ofX()+". What is the antiderivative of f?\ng(x) =");

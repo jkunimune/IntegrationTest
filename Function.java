@@ -3,7 +3,7 @@ import java.util.*;
 
 
 public class Function {
-  final static String ooo = "NEQGA0"; // the order of operations (Number, Exponent, Quotient, Geometric, Arithmetic) 
+  final static String ooo = "NEQgGA0"; // the order of operations (Number, Exponent, Quotient, (g/G)eometric, Arithmetic) 
   private String string;
   
   
@@ -23,7 +23,6 @@ public class Function {
   public Function(String expression, boolean standardize) { // reads a given mathematical expression
     if (standardize) {
       expression = expression.replace("C", "0");
-      expression = expression.replace("c", "0");
       expression = expression.replace(" ", "");
       expression = expression.replace("{", "(");
       expression = expression.replace("}", ")");
@@ -103,17 +102,17 @@ public class Function {
   public void simplify() {
     for (int i = 0; i < string.length(); i += 4) { // looks through the function for things that need to be simplified.  Whenever one is found, it starts over
       String term = string.substring(i);
-      if (!arg("F000"+term,1).contains("Nxxx") && arg("F000"+term,1).length() > 4 && !term.substring(0,4).equals("Fneg")) { // evaluates constants, assuming the result is an integer
+      if (!arg("F000"+term,1).contains("Nxxx") && arg("F000"+term,1).length() > 4 && !term.substring(0,4).equals("gneg")) { // evaluates constants, assuming the result is an integer
         double result = eval(term,0);
         if ((int)result == result) {
           if (result >= 0) {
             string = string.replace(arg("F000"+term,1), literalToCode((int)result));
-            i = 0;
+            i = -4;
             continue;
           }
           else {
-            string = string.replace(arg("F000"+term,1), "Fneg"+literalToCode(-(int)result));
-            i = 0;
+            string = string.replace(arg("F000"+term,1), "gneg"+literalToCode(-(int)result));
+            i = -4;
             continue;
           }
         }
@@ -121,103 +120,134 @@ public class Function {
       if (term.substring(0,4).equals("Aadd")) {
         if (new Function(arg(term, 1)).equals(new Function(arg(term, 2)))) { // u + u = 2u
           string = string.substring(0,i) + "GtmsN002" + arg(term, 1) + getAfter(string, i);
-          i = 0;
+          i = -4;
           continue;
         }
-        if (arg(term, 2).substring(0,4).equals("Fneg")) { // u + -v = u - v
+        if (arg(term, 2).substring(0,4).equals("gneg")) { // u + -v = u - v
           string = string.substring(0,i) + "Amns" + arg(term, 1) + arg(term,2).substring(4) + getAfter(string, i);
-          i = 0;
+          i = -4;
           continue;
         }
         if (arg(term,1).equals("N000")) { // 0 + u = u
           string = string.substring(0,i) + arg(term,2) + getAfter(string, i);
-          i = 0;
+          i = -4;
+          continue;
         }
         if (arg(term,2).equals("N000")) { // u + 0 = u
           string = string.substring(0,i) + arg(term,1) + getAfter(string, i);
-          i = 0;
+          i = -4;
           continue;
         }
       }
       if (term.substring(0,4).equals("Amns")) {
         if (new Function(arg(term, 1)).equals(new Function(arg(term, 2)))) { // u - u = 0
           string = string.substring(0,i) + "N000" + getAfter(string, i);
-          i = 0;
+          i = -4;
           continue;
         }
-        if (arg(term, 2).substring(0,4).equals("Fneg")) { // u--v = u + v
+        if (arg(term, 2).substring(0,4).equals("gneg")) { // u--v = u + v
           string = string.substring(0,i) + "Aadd" + arg(term, 1) + arg(term,2).substring(4) + getAfter(string, i);
-          i = 0;
+          i = -4;
           continue;
         }
         if (arg(term,1).equals("N000")) { // 0 - u = -u
-          string = string.substring(0,i) + "Fneg" + arg(term,2) + getAfter(string, i);
-          i = 0;
+          string = string.substring(0,i) + "gneg" + arg(term,2) + getAfter(string, i);
+          i = -4;
           continue;
         }
         if (arg(term,2).equals("N000")) { // u - 0 = u
           string = string.substring(0,i) + arg(term,1) + getAfter(string, i);
-          i = 0;
+          i = -4;
           continue;
         }
       }
-      if (term.substring(0,4).equals("Fneg")) {
-        if (term.substring(4,8).equals("Fneg")) { // --u = u
+      if (term.substring(0,4).equals("gneg")) {
+        if (term.substring(4,8).equals("gneg")) { // --u = u
           string = string.substring(0,i) + string.substring(i+8);
-          i = 0;
+          i = -4;
           continue;
         }
         if (term.substring(4,8).equals("N000")) { // -0 = 0
           string = string.substring(0,i) + string.substring(i+4);
-          i = 0;
+          i = -4;
           continue;
         }
         if (term.substring(4,8).equals("Amns")) { // -(u - v) = v - u
           string = string.substring(0,i) + "Amns" + arg(arg(term,1),2) + arg(arg(term,1),1);
-          i = 0;
+          i = -4;
           continue;
         }
       }
       if (term.substring(0,4).equals("Gtms")) {
-        if (arg(term,1).equals("N000") || arg(term,2).equals("N000")) { // u*0 = 0
+        if (arg(term,1).equals("N000") || arg(term,2).equals("N000")) { // u*0 = 0*u = 0
           string = string.substring(0,i) + "N000" + getAfter(string, i);
-          i = 0;
+          i = -4;
           continue;
         }
         if (arg(term,1).equals("N001")) { // 1*u = u
           string = string.substring(0,i) + arg(term,2) + getAfter(string, i);
-          i = 0;
+          i = -4;
           continue;
         }
         if (arg(term,2).equals("N001")) { // u*1 = u
           string = string.substring(0,i) + arg(term,1) + getAfter(string, i);
-          i = 0;
+          i = -4;
           continue;
+        }
+        if (arg(term,1).substring(0,4).equals("gneg")) { // (-u)*v = -u*v
+          string = string.substring(0,i) + "gnegGtms" + string.substring(i+8);
+          i = -4;
+          continue;
+        }
+        if (arg(term,2).substring(0,4).equals("gneg")) { // u*(-v) = -u*v
+          string = string.substring(0,i) + "gnegGtms" + arg(term,1) + arg(term,2).substring(4) + getAfter(string, i);
+          i = -4;
+          continue;
+        }
+      }
+      if (term.substring(0,4).equals("Qdvd")) {
+        if (arg(term,1).equals("N000")) { // 0/u = 0
+          string = string.substring(0,i) + "N000" + getAfter(string, i);
+          i = -4;
+          continue;
+        }
+        if (new Function(arg(term, 1)).equals(new Function(arg(term, 2)))) { // u/u = 1
+          string = string.substring(0,i) + "N001" + getAfter(string, i);
+          i = -4;
+          continue;
+        }
+        if (arg("F000"+term,1).indexOf("Nxxx") == -1 && arg(term,1).charAt(0) == 'N' && arg(term,2).charAt(0) == 'N') { // simplifies fractions
+          int gcf = getGCF(getLiteral(arg(term,1)), getLiteral(arg(term,2)));
+          if (gcf > 1) {
+            string = string.substring(0,i) + "Qdvd" + literalToCode(getLiteral(arg(term,1))/gcf) + literalToCode(getLiteral(arg(term,2))/gcf) + getAfter(string,i);
+            i = -4;
+            continue;
+          }
         }
       }
       if (term.substring(0,4).equals("Epow")) {
         if (arg(term,1).equals("N001")) { // 1^u = 1
           string = string.substring(0,i) + "N001" + getAfter(string, i);
-          i = 0;
+          i = -4;
           continue;
         }
         if (arg(term,2).equals("N001")) { // u^1 = u
           string = string.substring(0,i) + arg(term,1) + getAfter(string, i);
-          i = 0;
+          i = -4;
           continue;
         }
       }
       if (term.substring(0,4).equals("Dlog")) {
         if (arg(term,1).equals("N00e")) {
           string = string.substring(0,i) + "F0ln" + string.substring(i+8);
-          i = 0;
+          i = -4;
           continue;
         }
       }
       if (term.substring(0,4).equals("Drut")) {
         if (arg(term,1).equals("N002")) {
           string = string.substring(0,i) + "Fsrt" + string.substring(i+8);
-          i = 0;
+          i = -4;
           continue;
         }
       }
@@ -251,7 +281,7 @@ public class Function {
       output += "2pi";
     else if (func.substring(0,1).equals("N"))
       output += getLiteral(func);
-    else if (func.substring(0,4).equals("Fneg")) // Fneg is really geometric in OOO, but is an F function because of its lack of arguments
+    else if (func.substring(0,4).equals("gneg")) // gneg is really geometric in OOO, but is an F function because of its lack of arguments
       output += "-"+print(arg(func,1), 'G');
     else if (func.substring(0,4).equals("Aadd"))
       output += print(arg(func,1), fst) +"+"+ print(arg(func,2), fst);
@@ -328,7 +358,7 @@ public class Function {
       return 2*Math.PI;
     else if (func.substring(0,1).equals("N"))
       return getLiteral(func.substring(1));
-    else if (func.substring(0,4).equals("Fneg"))
+    else if (func.substring(0,4).equals("gneg"))
       return -eval(arg(func,1), x);
     else if (func.substring(0,4).equals("Aadd"))
       return eval(arg(func,1), x) + eval(arg(func,2), x);
@@ -392,8 +422,8 @@ public class Function {
       output += "N001";
     else if (func.substring(0,1).equals("N")) // d/dx C = 0
       output += "N000";
-    else if (func.substring(0,4).equals("Fneg")) // d/dx -x = -1
-      output += "Fneg"+differentiate(arg(func,1));
+    else if (func.substring(0,4).equals("gneg")) // d/dx -x = -1
+      output += "gneg"+differentiate(arg(func,1));
     else if (func.substring(0,4).equals("Aadd")) // d/dx u+v = du+dv
       output += "Aadd"+differentiate(arg(func,1))+differentiate(arg(func,2));
     else if (func.substring(0,4).equals("Amns")) // d/dx u-v = du-dv
@@ -409,7 +439,7 @@ public class Function {
     else if (func.substring(0,4).equals("Drut")) // d/dx u root (v) = d/dx v ^ 1/u
       output += differentiate("Epow"+arg(func,2)+"QdvdN001"+arg(func,1));
     else if (func.substring(0,4).equals("Fsrt")) // d/dx sqrt(u) = -du / 2sqrt(u)
-      output += "FnegQdvd"+differentiate(arg(func,1))+"GtmsN002Fsrt"+arg(func,1);
+      output += "gnegQdvd"+differentiate(arg(func,1))+"GtmsN002Fsrt"+arg(func,1);
     else if (func.substring(0,4).equals("Dlog")) // d/dx logu v  = udv/vdu
       output += "QdvdGtms"+arg(func,1)+differentiate(arg(func,2))+"Gtms"+arg(func,2)+differentiate(arg(func,1));
     else if (func.substring(0,4).equals("F0ln")) // d/dx lnu = du/u
@@ -417,31 +447,31 @@ public class Function {
     else if (func.substring(0,4).equals("Fsin")) // d/dx sinu = cosudu
       output += "GtmsFcos"+arg(func,1)+differentiate(arg(func,1));
     else if (func.substring(0,4).equals("Fcos")) // d/dx cosu = -sinudu
-      output += "FnegGtmsFsin"+arg(func,1)+differentiate(arg(func,1));
+      output += "gnegGtmsFsin"+arg(func,1)+differentiate(arg(func,1));
     else if (func.substring(0,4).equals("Ftan")) // d/dx tanu = sec^2u du
       output += "GtmsEpowFsec"+arg(func,1)+"N002"+differentiate(arg(func,1));
     else if (func.substring(0,4).equals("Fsec")) // d/dx secu = tanu secu du
       output += "GtmsGtmsFtan"+arg(func,1)+"Fsec"+arg(func,1)+differentiate(arg(func,1));
     else if (func.substring(0,4).equals("Fcsc")) // d/dx cscu = -cotu cscu du
-      output += "FnegGtmsGtmsFcot"+arg(func,1)+"Fcsc"+arg(func,1)+differentiate(arg(func,1));
+      output += "gnegGtmsGtmsFcot"+arg(func,1)+"Fcsc"+arg(func,1)+differentiate(arg(func,1));
     else if (func.substring(0,4).equals("Fcot")) // d/dx cotu = -csc^2u du
-      output += "FnegGtmsEpowFcsc"+arg(func,1)+"N002"+differentiate(arg(func,1));
+      output += "gnegGtmsEpowFcsc"+arg(func,1)+"N002"+differentiate(arg(func,1));
     else if (func.substring(0,4).equals("Fasn")) // d/dx arcsinu = du/sqrt(1-u^2)
       output += "Qdvd"+differentiate(arg(func,1))+"FsrtAmnsN001Epow"+arg(func,1)+"N002";
     else if (func.substring(0,4).equals("Facs")) // d/dx arccosu = -du/sqrt(1-u^2)
-      output += "FnegQdvd"+differentiate(arg(func,1))+"FsrtAmnsN001Epow"+arg(func,1)+"N002";
+      output += "gnegQdvd"+differentiate(arg(func,1))+"FsrtAmnsN001Epow"+arg(func,1)+"N002";
     else if (func.substring(0,4).equals("Fatn")) // d/dx arctanu = du/(1+u^2)
       output += "Qdvd"+differentiate(arg(func,1))+"AaddN001Epow"+arg(func,1)+"N002";
     else if (func.substring(0,4).equals("Fasc")) // d/dx arcsecu = du/(|u|*sqrt(u^2-1)) = du/sqrt(u^4-u^2)
       output += "Qdvd"+differentiate(arg(func,1))+"FsrtAmnsEpow"+arg(func,1)+"N004Epow"+arg(func,1)+"N002";
     else if (func.substring(0,4).equals("Facc")) // d/dx arccscu = -du/sqrt(u^4-u^2)
-      output += "FnegQdvd"+differentiate(arg(func,1))+"FsrtAmnsEpow"+arg(func,1)+"N004Epow"+arg(func,1)+"N002";
+      output += "gnegQdvd"+differentiate(arg(func,1))+"FsrtAmnsEpow"+arg(func,1)+"N004Epow"+arg(func,1)+"N002";
     else if (func.substring(0,4).equals("Fact")) // d/dx arccotu = -du/(1+u^2)
-      output += "FnegQdvd"+differentiate(arg(func,1))+"AaddN001Epow"+arg(func,1)+"N002";
+      output += "gnegQdvd"+differentiate(arg(func,1))+"AaddN001Epow"+arg(func,1)+"N002";
     else if (func.substring(0,4).equals("Fsih")) // d/dx sinhu = coshu du
       output += "GtmsFcoh"+arg(func,1)+differentiate(arg(func,1));
     else if (func.substring(0,4).equals("Fcoh")) // d/dx coshu = sinhu du
-      output += "GtmsFcoh"+arg(func,1)+differentiate(arg(func,1));
+      output += "GtmsFsih"+arg(func,1)+differentiate(arg(func,1));
     else if (func.substring(0,4).equals("Ftah")) // d/dx tanhu = du-tanh^2u du
       output += "Amns"+differentiate(arg(func,1))+"GtmsEpowFtah"+arg(func,1)+"N002"+differentiate(arg(func,1));
     else
@@ -474,25 +504,26 @@ public class Function {
         
         switch (o) {
           case 0: // arithmetic
-            if (exp.charAt(i) == '+')
+            if (exp.charAt(i) == '+') // reads +s
               return "Aadd" + read(exp.substring(0,i)) +  read(exp.substring(i+1, exp.length()));
-            else if (exp.charAt(i) == '-')
+            else if (exp.charAt(i) == '-') // -s
               return "Amns" + read(exp.substring(0,i)) +  read(exp.substring(i+1, exp.length()));
             break;
             
           case 1: // geometric
-            if (exp.charAt(i) == '*')
+            if (exp.charAt(i) == '*') // asterisks as multiplication
               return "Gtms" + read(exp.substring(0,i)) +  read(exp.substring(i+1, exp.length()));
-            else if (exp.charAt(i) == '/')
+            else if (exp.charAt(i) == '/') // slashes as division
               return "Qdvd" + read(exp.substring(0,i)) +  read(exp.substring(i+1, exp.length()));
-            else if ((isNumber(exp.charAt(i)) && (isLetter(exp.charAt(i-1)) || exp.charAt(i-1) == ')')) ||
-                     (isNumber(exp.charAt(i-1)) && (isLetter(exp.charAt(i)) || exp.charAt(i) == '(')) ||
-                     (exp.charAt(i-1) == ')' && exp.charAt(i) == '('))
+            else if (((exp.charAt(i-1) == 'x' || exp.charAt(i-1) == ')') && (isNumber(exp.charAt(i)) || exp.charAt(i) == '(')) || // adjacency as multiplication also
+                     ((isNumber(exp.charAt(i-1)) || exp.charAt(i-1) == ')') && (isLetter(exp.charAt(i)) || exp.charAt(i) == '('))) {
+              System.out.println(exp.substring(0,i) + " " + exp.substring(i));
               return "Gtms" + read(exp.substring(0,i)) + read(exp.substring(i));
+            }
             break;
             
           case 2: // exponential
-            if (exp.charAt(i) == '^')
+            if (exp.charAt(i) == '^') // and exponents
               return "Epow" + read(exp.substring(0,i)) +  read(exp.substring(i+1, exp.length()));
             break;
         }
@@ -503,7 +534,7 @@ public class Function {
     }
     
     if (exp.indexOf("-") == 0)
-      return "Fneg"+read(exp.substring(1));
+      return "gneg"+read(exp.substring(1));
     else if (exp.indexOf("ln") == 0)
       return "F0ln"+read(exp.substring(2));
     else if (exp.indexOf("log") == 0)
@@ -557,7 +588,7 @@ public class Function {
   
   
   private static String arg(String func, int argNum) { // finds the given argument of a function
-    String output = func; // I was going to just use func but Strings are objects, so I was actually messing with the input function.
+    String output = func;
     int cutoff = 4;
     
     for (int i = 0; i < argNum; i ++) { // cycles through arguments correct number of times
@@ -566,9 +597,9 @@ public class Function {
       int funcCount = 1;
       cutoff = 0;
       while (funcCount > 0) { // counts Ds and Ns to find the end of the argument
-        if (output.substring(cutoff, cutoff+1).equals("N"))
+        if (output.charAt(cutoff) == ('N'))
           funcCount --;
-        else if (!output.substring(cutoff, cutoff+1).equals("F"))
+        else if (output.charAt(cutoff) != 'F' && output.charAt(cutoff) != 'g')
           funcCount ++;
         cutoff += 4;
       }
@@ -589,7 +620,7 @@ public class Function {
       case 2:
         return "Gtms" + randomConst(true, false, true, 2, 10) + randomFunc(diff-r); // ku
       case 3:
-        return "Fneg" + randomFunc(diff-r); // -u
+        return "gneg" + randomFunc(diff-r); // -u
       case 4:
         return "Qdvd" + randomFunc(diff-r) + randomConst(true, false, false, 2, 8); // u/k
       case 5:
@@ -674,7 +705,7 @@ public class Function {
     else
       number = "N" + number;
     
-    if (negative)  return "Fneg" + number;
+    if (negative)  return "gneg" + number;
     else           return number;
   }
   
@@ -687,7 +718,7 @@ public class Function {
     while (number.length() != 3)
       number = "0" + number;
     
-    if (negative)  return "FnegN" + number;
+    if (negative)  return "gnegN" + number;
     else           return "N"+number;
   }
   
@@ -721,12 +752,20 @@ public class Function {
   private static boolean isLetter(char c) {
     return String.valueOf(c).compareTo(" ") >= 33 && String.valueOf(c).compareTo(" ") < 91 && String.valueOf(c).compareTo(" ") != 62;
   }
+  
+  
+  private static int getGCF(int numer, int denom) { // gets a greatest common factor between two numbers, returns 1 if none
+    for (int fac = numer; fac > 0; fac --)
+      if (numer%fac == 0 && denom%fac == 0)
+        return fac;
+    return 1;
+  }
 }
 
 
 
-// Key: N-Number   A-Arithmetic   G-Geometric   Q-Quotient   E-Exponential   F-Function   D-Double parameter function
-// Functions: Fneg Aadd Amns Gtms Qdvd Epow Fsqr Drut Fsrt Dlog F0ln Fsin Fcos Ftan Fsec Fcsc Fcot Fasn Facs Fatn Fcoh Fsih Ftah Fseh
+// Key: N-Number   A-Arithmetic   G-Geometric   Q-Quotient   E-Exponential   F-Function   D-Double parameter function   g-Single parameter geometric
+// Functions: gneg Aadd Amns Gtms Qdvd Epow Fsqr Drut Fsrt Dlog F0ln Fsin Fcos Ftan Fsec Fcsc Fcot Fasn Facs Fatn Fcoh Fsih Ftah Fseh
 // Literals*:  N001...N010 N00e N0pi Ntau
 // Variables: Nxxx
 // *literals stored in hexadecimal

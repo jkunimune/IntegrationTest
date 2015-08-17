@@ -72,7 +72,7 @@ public class Function {
   
   
   public String ofX() { // returns the standard mathematical notation of this
-    return print(string, "A");
+    return print(string, 'A');
   }
   
   
@@ -109,10 +109,12 @@ public class Function {
           if (result >= 0) {
             string = string.replace(arg("F000"+term,1), literalToCode((int)result));
             i = 0;
+            continue;
           }
           else {
             string = string.replace(arg("F000"+term,1), "Fneg"+literalToCode(-(int)result));
             i = 0;
+            continue;
           }
         }
       }
@@ -120,47 +122,122 @@ public class Function {
         if (new Function(arg(term, 1)).equals(new Function(arg(term, 2)))) { // u + u = 2u
           string = string.substring(0,i) + "GtmsN002" + arg(term, 1) + getAfter(string, i);
           i = 0;
+          continue;
         }
         if (arg(term, 2).substring(0,4).equals("Fneg")) { // u + -v = u - v
           string = string.substring(0,i) + "Amns" + arg(term, 1) + arg(term,2).substring(4) + getAfter(string, i);
           i = 0;
+          continue;
         }
-        if (arg(term,1).equals("N000")) { // u + 0 = u
+        if (arg(term,1).equals("N000")) { // 0 + u = u
           string = string.substring(0,i) + arg(term,2) + getAfter(string, i);
           i = 0;
         }
         if (arg(term,2).equals("N000")) { // u + 0 = u
           string = string.substring(0,i) + arg(term,1) + getAfter(string, i);
           i = 0;
+          continue;
         }
       }
       if (term.substring(0,4).equals("Amns")) {
         if (new Function(arg(term, 1)).equals(new Function(arg(term, 2)))) { // u - u = 0
           string = string.substring(0,i) + "N000" + getAfter(string, i);
           i = 0;
+          continue;
+        }
+        if (arg(term, 2).substring(0,4).equals("Fneg")) { // u--v = u + v
+          string = string.substring(0,i) + "Aadd" + arg(term, 1) + arg(term,2).substring(4) + getAfter(string, i);
+          i = 0;
+          continue;
+        }
+        if (arg(term,1).equals("N000")) { // 0 - u = -u
+          string = string.substring(0,i) + "Fneg" + arg(term,2) + getAfter(string, i);
+          i = 0;
+          continue;
+        }
+        if (arg(term,2).equals("N000")) { // u - 0 = u
+          string = string.substring(0,i) + arg(term,1) + getAfter(string, i);
+          i = 0;
+          continue;
         }
       }
-      if (term.substring(0,4).equals("Fneg") && term.substring(4,8).equals("Fneg")) { // --u = u
-        string = string.substring(0,i) + string.substring(i+8);
-        i = 0;
-      }
-      if (term.substring(0,4).equals("Fneg") && term.substring(4,8).equals("N000")) { // -0 = 0
-        string = string.substring(0,i) + string.substring(i+4);
-        i = 0;
+      if (term.substring(0,4).equals("Fneg")) {
+        if (term.substring(4,8).equals("Fneg")) { // --u = u
+          string = string.substring(0,i) + string.substring(i+8);
+          i = 0;
+          continue;
+        }
+        if (term.substring(4,8).equals("N000")) { // -0 = 0
+          string = string.substring(0,i) + string.substring(i+4);
+          i = 0;
+          continue;
+        }
+        if (term.substring(4,8).equals("Amns")) { // -(u - v) = v - u
+          string = string.substring(0,i) + "Amns" + arg(arg(term,1),2) + arg(arg(term,1),1);
+          i = 0;
+          continue;
+        }
       }
       if (term.substring(0,4).equals("Gtms")) {
         if (arg(term,1).equals("N000") || arg(term,2).equals("N000")) { // u*0 = 0
           string = string.substring(0,i) + "N000" + getAfter(string, i);
           i = 0;
+          continue;
+        }
+        if (arg(term,1).equals("N001")) { // 1*u = u
+          string = string.substring(0,i) + arg(term,2) + getAfter(string, i);
+          i = 0;
+          continue;
+        }
+        if (arg(term,2).equals("N001")) { // u*1 = u
+          string = string.substring(0,i) + arg(term,1) + getAfter(string, i);
+          i = 0;
+          continue;
+        }
+      }
+      if (term.substring(0,4).equals("Epow")) {
+        if (arg(term,1).equals("N001")) { // 1^u = 1
+          string = string.substring(0,i) + "N001" + getAfter(string, i);
+          i = 0;
+          continue;
+        }
+        if (arg(term,2).equals("N001")) { // u^1 = u
+          string = string.substring(0,i) + arg(term,1) + getAfter(string, i);
+          i = 0;
+          continue;
+        }
+      }
+      if (term.substring(0,4).equals("Dlog")) {
+        if (arg(term,1).equals("N00e")) {
+          string = string.substring(0,i) + "F0ln" + string.substring(i+8);
+          i = 0;
+          continue;
+        }
+      }
+      if (term.substring(0,4).equals("Drut")) {
+        if (arg(term,1).equals("N002")) {
+          string = string.substring(0,i) + "Fsrt" + string.substring(i+8);
+          i = 0;
+          continue;
         }
       }
     }
   }
+  
+  
+  public void addC() { // removes any constants to simplify an antiderivative
+    while (string.indexOf("Aadd") == 0 && (arg(string,1).indexOf("Nxxx") == -1 || arg(string,2).indexOf("Nxxx") == -1)) {
+      if (arg(string,1).indexOf("Nxxx") == -1) // k + u --> u
+        string = string.substring(4+arg(string,1).length());
+      else // u + k --> u
+        string = string.substring(4, 4+arg(string,1).length());
+    }
+  }
    
   
-  public static String print(String func, String outsideOpr) { // gives the form in which a function should be printed (fst and outsideOpr are for order of operations)
+  public static String print(String func, char outsideOpr) { // gives the form in which a function should be printed (fst and outsideOpr are for order of operations)
     String output = "";
-    String fst = func.substring(0,1);
+    char fst = func.charAt(0);
     if (ooo.indexOf(outsideOpr) < ooo.indexOf(fst))
       output = "(";
     
@@ -174,16 +251,16 @@ public class Function {
       output += "2pi";
     else if (func.substring(0,1).equals("N"))
       output += getLiteral(func);
-    else if (func.substring(0,4).equals("Fneg"))
-      output += "-"+print(arg(func,1), fst);
+    else if (func.substring(0,4).equals("Fneg")) // Fneg is really geometric in OOO, but is an F function because of its lack of arguments
+      output += "-"+print(arg(func,1), 'G');
     else if (func.substring(0,4).equals("Aadd"))
       output += print(arg(func,1), fst) +"+"+ print(arg(func,2), fst);
     else if (func.substring(0,4).equals("Amns"))
-      output += print(arg(func,1), fst) +"-"+ print(arg(func,2), "0"); // subtraction has somewhat special rules regarding parentheses
+      output += print(arg(func,1), fst) +"-"+ print(arg(func,2), '0'); // subtraction has somewhat special rules regarding parentheses
     else if (func.substring(0,4).equals("Gtms"))
       output += print(arg(func,1), fst) + "(" + print(arg(func,2), fst) + ")";
     else if (func.substring(0,4).equals("Qdvd"))
-      output += print(arg(func,1), "G") +"/"+ print(arg(func,2), fst); // so does division
+      output += print(arg(func,1), 'G') +"/"+ print(arg(func,2), fst); // so does division
     else if (func.substring(0,4).equals("Epow"))
       output += print(arg(func,1), fst) +"^"+ print(arg(func,2), fst);
     else if (func.substring(0,4).equals("Fsqr"))
@@ -192,8 +269,12 @@ public class Function {
       output += print(arg(func,1), fst) +"rt"+ print(arg(func,2), fst);
     else if (func.substring(0,4).equals("Fsrt"))
       output += "sqrt"+ print(arg(func,1), fst);
-    else if (func.substring(0,4).equals("Dlog"))
-      output += "log"+ print(arg(func,1), fst) +" "+ print(arg(func,2), fst);
+    else if (func.substring(0,4).equals("Dlog")) {
+      if (arg(func,1).equals("N010"))
+        output += "log"+ print(arg(func,2), fst);
+      else
+        output += "log"+ print(arg(func,1), fst) +" "+ print(arg(func,2), fst);
+    }
     else if (func.substring(0,4).equals("F0ln"))
       output += "ln"+ print(arg(func,1), fst);
     else if (func.substring(0,4).equals("Fsin"))
@@ -638,7 +719,7 @@ public class Function {
   
   
   private static boolean isLetter(char c) {
-    return String.valueOf(c).compareTo(" ") >= 33 && String.valueOf(c).compareTo(" ") < 91;
+    return String.valueOf(c).compareTo(" ") >= 33 && String.valueOf(c).compareTo(" ") < 91 && String.valueOf(c).compareTo(" ") != 62;
   }
 }
 

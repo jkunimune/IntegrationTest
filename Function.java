@@ -255,6 +255,25 @@ public class Function {
   }
   
   
+  public double[] taylor(int n) { // generates a taylor polynomial of length degree
+    return taylor(0,n);
+  }
+  
+  
+  public double[] taylor(double x0, int n) { // generates a list of coefficients for the taylor polynomial
+    double factorial = 1;
+    Function f = this;
+    double[] output = new double[n+1];
+    output[0] = f.of(x0);
+    for (int i = 1; i <= n; i ++) {
+      factorial *= i;
+      f = f.prime();
+      output[i] = f.of(x0)/factorial;
+    }
+    return output;
+  }
+  
+  
   public void addC() { // removes any constants to simplify an antiderivative
     while (string.indexOf("Aadd") == 0 && (arg(string,1).indexOf("Nxxx") == -1 || arg(string,2).indexOf("Nxxx") == -1)) {
       if (arg(string,1).indexOf("Nxxx") == -1) // k + u --> u
@@ -265,7 +284,7 @@ public class Function {
   }
    
   
-  public static String print(String func, char outsideOpr) { // gives the form in which a function should be printed (fst and outsideOpr are for order of operations)
+  private static String print(String func, char outsideOpr) { // gives the form in which a function should be printed (fst and outsideOpr are for order of operations)
     String output = "";
     char fst = func.charAt(0);
     if (ooo.indexOf(outsideOpr) < ooo.indexOf(fst))
@@ -347,7 +366,7 @@ public class Function {
   }
   
   
-  public static double eval(String func, double x) { // evaluates a given function at a given x
+  private static double eval(String func, double x) { // evaluates a given function at a given x
     if (func.substring(0,4).equals("Nxxx"))
       return x;
     else if (func.substring(0,4).equals("N00e"))
@@ -415,7 +434,7 @@ public class Function {
   }
   
   
-  public static String differentiate(String func) {
+  private static String differentiate(String func) {
     String output = "";
 
     if (func.substring(0,4).equals("Nxxx")) // d/dx x = 1
@@ -484,7 +503,7 @@ public class Function {
   }
   
   
-  public static String read(String exp) { // converts a mathematical expression (i.e. 2x) to code (i.e. GtmsN002Nxxx)
+  private static String read(String exp) { // converts a mathematical expression (i.e. 2x) to code (i.e. GtmsN002Nxxx)
     if (exp.length() == 0)
       return "%ERROR!%";
     if (exp.charAt(0) == '(')
@@ -517,7 +536,6 @@ public class Function {
               return "Qdvd" + read(exp.substring(0,i)) +  read(exp.substring(i+1, exp.length()));
             else if (((exp.charAt(i-1) == 'x' || exp.charAt(i-1) == ')') && (isNumber(exp.charAt(i)) || exp.charAt(i) == '(')) || // adjacency as multiplication also
                      ((isNumber(exp.charAt(i-1)) || exp.charAt(i-1) == ')') && (isLetter(exp.charAt(i)) || exp.charAt(i) == '('))) {
-              System.out.println(exp.substring(0,i) + " " + exp.substring(i));
               return "Gtms" + read(exp.substring(0,i)) + read(exp.substring(i));
             }
             break;
@@ -551,8 +569,8 @@ public class Function {
       return "Fsec"+read(exp.substring(3));
     else if (exp.indexOf("cot") == 0)
       return "Fcot"+read(exp.substring(3));
-    else if (exp.indexOf("arccot") == 0)
-      return "Fact"+read(exp.substring(4));
+    else if (exp.indexOf("sqrt") == 0)
+      return "Fsrt"+read(exp.substring(4));
     else if (exp.indexOf("sinh") == 0)
       return "Fsih"+read(exp.substring(4));
     else if (exp.indexOf("cosh") == 0)
@@ -569,6 +587,8 @@ public class Function {
       return "Facc"+read(exp.substring(6));
     else if (exp.indexOf("arcsec") == 0)
       return "Fasc"+read(exp.substring(6));
+    else if (exp.indexOf("arccot") == 0)
+      return "Fact"+read(exp.substring(6));
     else if (exp.equals("x"))
       return "Nxxx";
     else if (exp.equals("pi"))
@@ -759,6 +779,12 @@ public class Function {
       if (numer%fac == 0 && denom%fac == 0)
         return fac;
     return 1;
+  }
+  
+  
+  @Override
+  public String toString() {
+    return this.ofX();
   }
 }
 
